@@ -68,12 +68,14 @@ preInstall:
     stub_location=$(sudo nginx -T 2>&1 | grep -ozP "(?s:.*\s)\Klocation(?s).*stub_status" | grep -aoP "\/([^\s]+)")
     if [ "$stub_location" == "" ]; then
       # if no existing sub location is found, check for server block in the configuration. if no block, send up DETECTED. if block, continue with install
-      # TODO add code check for server config block - ensure its not commented out
       config_location=$(sudo nginx -V 2>&1 | grep -ozP "conf-path=((/*[a-z]*\.*)*)" | cut -d "=" -f 2-)
 
-      server_config_block=$( cat $config_location | grep "^[^#][\s]*erver\s*{" )
+      server_config_block=$(cat $config_location | grep "^[^#] *s*erver\s*{" )
       if [ "$server_config_block" == "" ]; then
         exit 132
+      else
+        # block found but no sub status configured. continue to install 
+        exit 0
       fi
     fi
 
